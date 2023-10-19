@@ -1,19 +1,31 @@
-from fastapi import FastAPI, Request, HTTPException, status
+from fastapi import FastAPI, Request, HTTPException, status, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 from tortoise.contrib.fastapi import register_tortoise
 from tortoise import BaseDBAsyncClient
 from tortoise.signals import post_save
 
 from database.models import *
-from authentication import hash_password, verify_token
+from auth.authentication import hash_password, verify_token
 from src.email import send_mail
 
 from typing import Optional, Type, List
 
 
 app = FastAPI()
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
+
+
+@app.post('/token')
+async def generate_token(request_form: OAuth2PasswordRequestForm = Depends()):
+    token = await token_generator(request_form.username, request_form.password)
+    return {'access token': token, 'token type': 'Bearer'}
+
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    return {'the token of current user is': token}
 
 
 @post_save(User)

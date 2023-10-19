@@ -27,3 +27,11 @@ async def verify_token(token:str):
         )
     
     return user
+
+
+async def authenticate_user(username, password):
+    user = await User.get(username=username)
+
+#     if user and verify_password
+# async def token_generator(username: str, password: str):
+#     pass
